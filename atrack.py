@@ -25,12 +25,13 @@ password = 'password'
 def login():
     # Create a new instance of the Firefox driver
     global driver
-    driver = webdriver.Firefox()
+    #driver = webdriver.Firefox()
+    driver = webdriver.PhantomJS()
 
     # go to the google home page
-    #driver.get("http://redmine.ln/projects/go-system-up-win/activity")
+    driver.get("http://redmine.ln/projects/go-system-up-win/activity")
     #driver.get("http://redmine.ln/projects/go-rfid/activity?from=2016-05-31")
-    driver.get("http://redmine.ln/projects/go-rfid/activity")
+    #driver.get("http://redmine.ln/projects/go-rfid/activity")
 
     # the page is ajaxy so the title is originally this:
     print(driver.title)
@@ -143,11 +144,10 @@ def read_tasks():
 
 def process_tasks():
 
+    noaction_list = []
     for i in range(len(my_links)):
         if my_descr[i].find("(") == -1:
-            my_times.remove(i)
-            my_descr.remove(i)
-            my_links.remove(i)
+            noaction_list.append(i)
         else:
             status = my_descr[i][my_descr[i].find("(") + 1:my_descr[i].find(")")]
             my_descr[i] = status
@@ -155,6 +155,11 @@ def process_tasks():
             if my_links[i].find("#") != -1:
                 trimmed_link = my_links[i][0:my_links[i].find("#")]
                 my_links[i] = trimmed_link
+
+    for i in noaction_list:
+                del my_times[i]
+                del my_descr[i]
+                del my_links[i]
 
 
     print "\n\nProcessed (step 1):"
@@ -235,7 +240,7 @@ def translate_statuses():
         if my_descr[i] == u'\u0412 \u0442\u0435\u0441\u0442\u0438\u0440\u043e\u0432\u0430\u043d\u0438\u0438':
             my_descr[i] = 'Testing In Progress'
 
-        print "[%i] (%s) %s - %s" % (i,my_times[i],my_links[i],my_descr[i])
+        print "%i. %s - %s" % (i+1,my_links[i],my_descr[i])
 
 
 
