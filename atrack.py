@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
+from datetime import date
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import NoSuchElementException
@@ -9,9 +10,26 @@ from selenium.webdriver.support import expected_conditions as EC # available sin
 from selenium.webdriver.common.by import By
 
 import sys
+import os
+
+products = ["Go-RFID", "Go-RFID Android", "Go-System Windows client"]
+
+redmines = {}
+redmines["Go-RFID"] = "http://redmine.ln/projects/go-rfid/activity"
+redmines["Go-RFID Android"] = "http://rdm.go-rost.ru/projects/go-rfid-android/activity"
+redmines["Go-System Windows client"] = "http://redmine.ln/projects/go-system-up-win/activity"
+
+report_filename = ""
+filename_head = u""
+filename_head = os.path.expanduser('~') + u"/Documents/reports/"
+filename_tail = u" \u041E\u0442\u0447\u0435\u0442 \u043F\u043E \u043E\u0431\u0440\u0430\u0431\u043E\u0442\u0430\u043D\u043D\u044B\u043C \u0437\u0430\u0434\u0430\u0447\u0430\u043C.txt"
+
+
 
 driver = None
 user_id = None
+user_display_name = None
+is_user_display_name_written = False
 
 my_times = []
 my_links = []
@@ -22,16 +40,25 @@ password = 'password'
 
 
 
-def login():
+
+def login(product):
     # Create a new instance of the Firefox driver
     global driver
     #driver = webdriver.Firefox()
     driver = webdriver.PhantomJS()
 
     # go to the google home page
-    driver.get("http://redmine.ln/projects/go-system-up-win/activity")
+    #driver.get("http://redmine.ln/projects/go-system-up-win/activity")
     #driver.get("http://redmine.ln/projects/go-rfid/activity?from=2016-05-31")
     #driver.get("http://redmine.ln/projects/go-rfid/activity")
+    #driver.get("http://rdm.go-rost.ru/projects/go-rfid-android/activity")
+    #driver.get("http://redmine.ln/projects/go/activity")
+    driver.get(redmines[product])
+
+
+    print "\n------------------"
+    print product
+    print "------------------\n"
 
     # the page is ajaxy so the title is originally this:
     print(driver.title)
@@ -82,8 +109,19 @@ def read_tasks():
     raw_descr = []
     raw_users = []
 
+    global user_display_name
     global my_links
     global my_descr
+
+    if user_display_name is None:
+        try:
+            dn = driver.find_element_by_css_selector("span.author a.active")
+            user_display_name = dn.text
+            print "Got displayname: " + user_display_name
+        except NoSuchElementException as e:
+            print("No user name found")
+
+
 
     try:
         tasknames = driver.find_elements_by_css_selector('div#activity dl:first-of-type dt a')
@@ -240,12 +278,75 @@ def translate_statuses():
         if my_descr[i] == u'\u0412 \u0442\u0435\u0441\u0442\u0438\u0440\u043e\u0432\u0430\u043d\u0438\u0438':
             my_descr[i] = 'Testing In Progress'
 
+        if my_descr[i] not in ('New','Closed','Fix Again','Testing In Progress'):
+            my_descr[i] = 'Hell if I know'
+
         print "%i. %s - %s" % (i+1,my_links[i],my_descr[i])
 
 
 
+def store_tasks(product):
+    global user_display_name
+    global is_user_display_name_written
+
+    if len(my_links) > 0:
+        file_object = open(report_filename, 'a')
+
+        if is_user_display_name_written is False:
+            user_display_name = user_display_name + "."
+            file_object.write(user_display_name.encode('utf8'))
+            file_object.write("\n")
+            is_user_display_name_written = True
+
+        #header
+        file_object.write("\n\n" + product + ":\n")
+
+        #body
+        for i in range(len(my_links)):
+            file_object.write("   " + str(i+1) + ". " + my_links[i] + " - " + my_descr[i] + "\n")
+
+        file_object.close()
 
 
+def clear_tasks():
+    global my_times
+    global my_links
+    global my_descr
+    my_times = []
+    my_links = []
+    my_descr = []
+
+
+def create_report_file():
+    d = date.today()
+
+    month_number = str(d.month)
+    if len(month_number) < 2:
+        month_number = "0" + month_number
+
+    day_number = str(d.day)
+    if len(day_number) < 2:
+        day_number = "0" + day_number
+
+    report_date = str(d.year) + month_number + day_number
+
+    global report_filename
+    report_filename = filename_head + report_date + filename_tail
+    file_object = open(report_filename, 'w')
+
+    report_display_date = day_number + "." + month_number + "." + str(d.year)
+    report_head = u"\u041E\u0442\u0447\u0451\u0442 \u043F\u043E \u043E\u0431\u0440\u0430\u0431\u043E\u0442\u0430\u043D\u043D\u044B\u043C \u0437\u0430\u0434\u0430\u0447\u0430\u043C \u043E\u0442 "
+    #report_tail = u"; \u041D\u0438\u043A\u0438\u0444\u043E\u0440\u043E\u0432 \u041F.\u041B."
+    report_tail = u"; "
+    report_string = u""
+    report_string = report_head + report_display_date + report_tail
+
+    file_object.write("\n")
+    file_object.write(report_string.encode('utf8'))
+    #file_object.write("\n")
+
+
+    file_object.close()
 
 
 
@@ -257,8 +358,12 @@ if __name__ == '__main__':
     else:
         username = sys.argv[1]
         password = sys.argv[2]
+        create_report_file()
 
-    login()
-    read_tasks()
-    process_tasks()
-    translate_statuses()
+    for product in products:
+        login(product)
+        read_tasks()
+        process_tasks()
+        translate_statuses()
+        store_tasks(product)
+        clear_tasks()
