@@ -109,13 +109,15 @@ def read_tasks():
     raw_descr = []
     raw_users = []
 
+    global user_id
     global user_display_name
     global my_links
     global my_descr
 
     if user_display_name is None:
         try:
-            dn = driver.find_element_by_css_selector("span.author a.active")
+            search_string = user_id[user_id.find("users"):]
+            dn = driver.find_element_by_css_selector('span.author a[href*="' + search_string + '"]')
             user_display_name = dn.text
             print "Got displayname: " + user_display_name
         except NoSuchElementException as e:
