@@ -46,6 +46,8 @@ def login(product):
     global driver
     #driver = webdriver.Firefox()
     driver = webdriver.PhantomJS()
+    driver.set_window_size(1024, 768)
+    driver.implicitly_wait(15)
 
     # go to the google home page
     #driver.get("http://redmine.ln/projects/go-system-up-win/activity")
@@ -76,14 +78,14 @@ def login(product):
 
     try:
         # we have to wait for the page to refresh, the last thing that seems to be updated is the title
-        WebDriverWait(driver, 10).until(EC.text_to_be_present_in_element((By.CSS_SELECTOR,'a.user.active'), username))
+        WebDriverWait(driver, 15).until(EC.text_to_be_present_in_element((By.CSS_SELECTOR,'div#loggedas a.user.active'), username))
 
         # You should see "cheese! - Google Search"
-        print("Logged in")
+        print "Logged in as " + driver.find_element_by_xpath("//div[@id='loggedas']/a").text
 
 
         #WebDriverWait(driver, 10).until(EC.text_to_be_present_in_element((By.CSS_SELECTOR,'div#content h2'), 'Действия'))
-        WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR,'div#content h2')))
+        WebDriverWait(driver, 15).until(EC.visibility_of_element_located((By.CSS_SELECTOR,'div#content h2')))
         print("Page loaded")
 
     except (TimeoutException):
