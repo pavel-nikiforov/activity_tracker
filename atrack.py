@@ -12,10 +12,12 @@ from selenium.webdriver.common.by import By
 import sys
 import os
 
-products = ["Go-RFID", "Go-RFID Android", "Go-System Windows client"]
+#products = ["Go-RFID", "Go-RFID Android", "Go-System Windows client"]
+products = ["Go-RFID", "Go-Server", "Go-RFID Android"]
 
 redmines = {}
 redmines["Go-RFID"] = "http://redmine.ln/projects/go-rfid/activity"
+redmines["Go-Server"] = "http://redmine.ln/projects/go/activity?utf8=1&show_issues=1&with_subprojects=0"
 redmines["Go-RFID Android"] = "http://rdm.go-rost.ru/projects/go-rfid-android/activity"
 redmines["Go-System Windows client"] = "http://redmine.ln/projects/go-system-up-win/activity"
 
@@ -198,7 +200,12 @@ def process_tasks():
                 trimmed_link = my_links[i][0:my_links[i].find("#")]
                 my_links[i] = trimmed_link
 
-    for i in noaction_list:
+    if len(noaction_list) is not 0:
+        noaction_list.reverse()
+        print "Deleting those items as non actions", noaction_list
+
+        for i in noaction_list:
+                print "deleting item ", i
                 del my_times[i]
                 del my_descr[i]
                 del my_links[i]
