@@ -13,13 +13,15 @@ import sys
 import os
 
 #products = ["Go-RFID", "Go-RFID Android", "Go-System Windows client"]
-products = ["Go-RFID", "Go-Server", "Go-RFID Android"]
+products = ["Go-RFID", "Go-Server", "Go-RFID Android", "Go-RFID.RU"]
 
 redmines = {}
 redmines["Go-RFID"] = "http://redmine.ln/projects/go-rfid/activity"
+#redmines["Go-RFID"] = "http://redmine.ln/projects/go-rfid/activity?from=2017-01-24"
 redmines["Go-Server"] = "http://redmine.ln/projects/go/activity?utf8=1&show_issues=1&with_subprojects=0"
 redmines["Go-RFID Android"] = "http://rdm.go-rost.ru/projects/go-rfid-android/activity"
 redmines["Go-System Windows client"] = "http://redmine.ln/projects/go-system-up-win/activity"
+redmines["Go-RFID.RU"] = "http://rdm.go-rost.ru/projects/go-rfid-ru/activity"
 
 report_filename = ""
 filename_head = u""
